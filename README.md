@@ -1,0 +1,2 @@
+# SpreadJS_CopyingDataAcrossWorkbooks
+在纯前端在线表格中实现跨工作簿数据复制功能
