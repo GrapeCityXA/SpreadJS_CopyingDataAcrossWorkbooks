@@ -1,0 +1,144 @@
+<html>
+
+<head>
+    <title>grapecity_spreadJS_demo</title>
+    <script src="jquery_3.1.1.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="gc.spread.sheets.excel2013white.14.2.2.css" type="text/css">
+    <script src="gc.spread.sheets.all.14.2.2.min.js" type="text/javascript"></script>
+    <script src="gc.spread.excelio.14.2.2.min.js" type="text/javascript"></script>
+    <script src="https://cdn.grapecity.com.cn/spreadjs/scripts/FileSaver.min.js" type="text/javascript"></script>
+    <script src="gc.spread.sheets.resources.zh.14.2.2.min.js" type="text/javascript"></script>
+    <script src="gc.spread.sheets.print.14.2.2.min.js" type="text/javascript"></script>
+    <script src="gc.spread.sheets.pdf.14.2.2.min.js" type="text/javascript"></script>
+    <script src="gc.spread.sheets.charts.14.2.2.min.js" type="text/javascript"></script>
+    <script src="v14.js" type="text/javascript"></script>
+    <style type="text/css">
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        
+        p.title{
+            color: red;
+            text-align: center;
+        }
+        
+        .sample-spreadsheets {
+            width: 100%;
+            height: 300px;
+        }
+        
+        .options-container {
+            width: 220px;
+            padding: 12px;
+            box-sizing: border-box;
+            background: #ddd;
+            position: absolute;
+            top: 60px;
+            right: 30px;
+            z-index: 20;
+        }
+        
+        .input-container {
+            width: 100%;
+            border: 1px solid #e8e8e8;
+            padding: 6px 12px;
+        }
+        
+        .input-container .input {
+            padding: 10px 12px;
+        }
+        
+        .input-container .button {
+            padding: 6px 12px;
+            width: 160px;
+            margin-top: 6px;
+            border: none;
+            border-radius: 4px;
+            background-color: #609b61;
+        }
+        
+        .group{
+            font-size: 12px;
+        }
+        
+        .group input {
+            margin: 16px 0;
+            padding: 4px 12px;
+        }
+        
+        #copy{
+            margin:12px;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 4px;
+            background-color: #609b61;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="log"></div>
+    <p class="title">复制导入内容到指定表单</p>
+
+    <div id="ss" class="sample-spreadsheets" style="float:left"></div>
+    <div id="ss1" class="sample-spreadsheets" style="float:left"></div>
+    <div class="options-container">
+        <div class="option-row">
+            <div class="input-container">
+                <input type="file" id="fileDemo" class="input">
+                <div class="group">
+                    <label>文件密码:
+                        <input type="password" id="password" placeholder="加密文件需要输入提取密码">
+                    </label>
+                </div>
+                <input type="button" id="loadExcel" value="上传至上方工作簿" class="button">
+            </div>
+        </div>
+        <div class="option-row">
+            <input type="button" id="copy" value="选中区域复制到下方工作簿" class="button">
+        </div>
+    </div>
+    <script type="text/javascript">
+        document.getElementById('log').innerHTML = GC.Spread.Sheets.productInfo.productVersion;
+        var spread = new GC.Spread.Sheets.Workbook(document.getElementById("ss"), {
+            sheetCount: 2
+        });
+        var spread1 = new GC.Spread.Sheets.Workbook(document.getElementById("ss1"), {
+            sheetCount: 2
+        });
+        var excelIo = new GC.Spread.Excel.IO();
+        $("#loadExcel").click(function() {
+            var excelFile = document.getElementById("fileDemo").files[0];
+            var password = $("#password").val();
+            excelIo.open(excelFile, function(json) {
+                spread.fromJSON(json);
+            }, function(e) {
+                alert(e.errorMessage);
+                if (e.errorCode === 2 /*noPassword*/ || e.errorCode === 3 /*invalidPassword*/ ) {
+                    $("#password").select();
+                }
+            }, {
+                password: password
+            });
+        });
+        
+        $("#copy").click(function() {
+            var sheet = spread.getActiveSheet();
+            var sheet1 = spread1.getActiveSheet();
+            var fromSelections = sheet.getSelections()[0];
+            for (var i = fromSelections.row; i < fromSelections.row + fromSelections.rowCount; i++) {
+                for (var j = fromSelections.col; j < fromSelections.col + fromSelections.colCount; j++) {
+                    sheet1.suspendPaint();
+                    sheet1.setFormatter(i, j, sheet.getFormatter(i, j));
+                    sheet1.setValue(i, j, sheet.getValue(i, j));
+                    sheet1.setStyle(i, j, sheet.getActualStyle(i, j));
+                    sheet1.resumePaint();
+                }
+            }
+        
+        });
+    </script>
+</body>
+
+</html>
